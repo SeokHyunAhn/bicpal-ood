@@ -1,0 +1,22 @@
+{
+  "Training": {
+    "total_jsons": 311016,
+    "ood_jsons": 34872,
+    "ood_by_category": {
+      "3": 7620,
+      "5": 13613,
+      "4": 13736
+    },
+    "missing_image": 0
+  },
+  "Validation": {
+    "total_jsons": 41969,
+    "ood_jsons": 13732,
+    "ood_by_category": {
+      "5": 3658,
+      "3": 5833,
+      "4": 4242
+    },
+    "missing_image": 0
+  }
+}

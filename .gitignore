@@ -1,0 +1,22 @@
+# 스크립트 실행 결과 (재생성 가능)
+data/ood_excluded_images.txt
+
+# YOLOv8 학습 결과
+runs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+*.pt
+*.onnx
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

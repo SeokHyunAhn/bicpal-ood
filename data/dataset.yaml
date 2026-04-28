@@ -1,0 +1,12 @@
+# YOLOv8 dataset configuration
+# 실제 경로는 build_yolo_dataset.py 실행 후 yolo_dataset/ 아래에 생성됨
+
+path: D:/orchard_data/yolo_dataset
+train: images/train
+val:   images/val
+
+nc: 3
+names:
+  0: 사람
+  1: 손수레
+  2: 사다리
