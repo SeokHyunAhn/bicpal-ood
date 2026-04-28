@@ -18,10 +18,12 @@ YOLOv8 학습 스크립트 — 과수원 OOD 탐지 프로젝트
   python yolov8/train.py --resume runs/train/exp1/weights/last.pt
 """
 
+import os
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+
 import argparse
 import platform
 import sys
-import tempfile
 import textwrap
 from datetime import datetime
 from pathlib import Path
