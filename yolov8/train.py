@@ -67,16 +67,16 @@ def parse_args() -> argparse.Namespace:
         help="학습 에폭 수 (목표 mAP≥95% 위해 최소 50 권장)",
     )
     p.add_argument(
-        "--imgsz", type=int, default=1280,
-        help="입력 이미지 크기 (원본 1920×1080 → 1280 권장)",
+        "--imgsz", type=int, default=640,
+        help="입력 이미지 크기 (640: 빠름, 1280: 정밀)",
     )
     p.add_argument(
         "--batch", type=int, default=-1,
         help="배치 크기 (-1: GPU 메모리 기준 자동)",
     )
     p.add_argument(
-        "--workers", type=int, default=8,
-        help="DataLoader 워커 수",
+        "--workers", type=int, default=4,
+        help="DataLoader 워커 수 (Windows는 4 이하 권장)",
     )
     p.add_argument(
         "--device", type=str, default=None,
@@ -107,13 +107,13 @@ def parse_args() -> argparse.Namespace:
         help="초기 학습률",
     )
     p.add_argument(
-        "--cos-lr", action="store_true", default=True,
-        help="Cosine LR 스케줄러 사용",
+        "--cos-lr", action=argparse.BooleanOptionalAction, default=True,
+        help="Cosine LR 스케줄러 사용 (--no-cos-lr 로 비활성화)",
     )
     p.add_argument(
-        "--cache", type=str, default="disk",
+        "--cache", type=str, default="false",
         choices=["ram", "disk", "false"],
-        help="이미지 캐시 방식 (대용량 데이터셋: disk 권장)",
+        help="이미지 캐시 방식 (50만장 disk 캐시는 수백 GB + 수 시간 소요)",
     )
     return p.parse_args()
 
@@ -246,6 +246,7 @@ def train(args: argparse.Namespace, data_yaml: str, device: str):
       에폭     : {args.epochs}
       이미지   : {args.imgsz}px
       배치     : {'auto' if args.batch == -1 else args.batch}
+      워커     : {args.workers}
       장치     : {device}
       캐시     : {args.cache}
       실험명   : {exp_name}
