@@ -24,6 +24,7 @@ import argparse
 import sys
 from pathlib import Path
 
+import cv2
 import numpy as np
 import torch
 
@@ -132,6 +133,33 @@ def load_ood_images(max_n: int | None) -> list[Path]:
 
 
 # ─────────────────────────────────────────────────
+# 전처리 (letterbox + normalize)
+# ─────────────────────────────────────────────────
+def _letterbox(img: np.ndarray, size: int) -> np.ndarray:
+    h, w  = img.shape[:2]
+    scale = size / max(h, w)
+    nh, nw = int(h * scale), int(w * scale)
+    img    = cv2.resize(img, (nw, nh), interpolation=cv2.INTER_LINEAR)
+    top, left = (size - nh) // 2, (size - nw) // 2
+    canvas = np.full((size, size, 3), 114, dtype=np.uint8)
+    canvas[top:top + nh, left:left + nw] = img
+    return canvas
+
+
+def _load_batch(paths: list[Path], imgsz: int, device: str) -> torch.Tensor:
+    tensors = []
+    for p in paths:
+        img = cv2.imread(str(p))
+        if img is None:
+            img = np.full((imgsz, imgsz, 3), 114, dtype=np.uint8)
+        img = _letterbox(img, imgsz)
+        img = img[:, :, ::-1]                                  # BGR → RGB
+        img = np.ascontiguousarray(img.transpose(2, 0, 1))    # HWC → CHW
+        tensors.append(torch.from_numpy(img).float().div(255.0))
+    return torch.stack(tensors).to(device)
+
+
+# ─────────────────────────────────────────────────
 # 에너지 스코어 계산
 # ─────────────────────────────────────────────────
 def compute_energies(
@@ -143,19 +171,17 @@ def compute_energies(
     device: str,
     label: str,
 ) -> list[float]:
+    yolo_model = model.model
+    yolo_model.eval()
     energies: list[float] = []
     total = len(image_paths)
 
     for i in range(0, total, batch_size):
-        batch = [str(p) for p in image_paths[i : i + batch_size]]
+        batch_paths = image_paths[i : i + batch_size]
+        img_tensor  = _load_batch(batch_paths, imgsz, device)
         hook._buf.clear()
-        model.predict(
-            batch,
-            imgsz=imgsz,
-            device=device,
-            verbose=False,
-            save=False,
-        )
+        with torch.no_grad():
+            yolo_model(img_tensor)
         energies.extend(hook.pop_energy().tolist())
         print(f"\r  {label}: {min(i + batch_size, total):,}/{total:,}", end="", flush=True)
 
