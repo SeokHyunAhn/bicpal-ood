@@ -156,7 +156,9 @@ def _load_batch(paths: list[Path], imgsz: int, device: str) -> torch.Tensor:
         img = img[:, :, ::-1]                                  # BGR → RGB
         img = np.ascontiguousarray(img.transpose(2, 0, 1))    # HWC → CHW
         tensors.append(torch.from_numpy(img).float().div(255.0))
-    return torch.stack(tensors).to(device)
+    # "0" → "cuda:0" 변환 (torch .to()는 "cuda:0" 형식 요구)
+    torch_device = f"cuda:{device}" if device.isdigit() else device
+    return torch.stack(tensors).to(torch_device)
 
 
 # ─────────────────────────────────────────────────
@@ -171,7 +173,8 @@ def compute_energies(
     device: str,
     label: str,
 ) -> list[float]:
-    yolo_model = model.model
+    torch_device = f"cuda:{device}" if device.isdigit() else device
+    yolo_model   = model.model.to(torch_device)
     yolo_model.eval()
     energies: list[float] = []
     total = len(image_paths)
